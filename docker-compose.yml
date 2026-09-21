@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_PASSWORD:?set MSSQL_PASSWORD in .env}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  api:
+    build:
+      context: ./TicketTracker.Api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Only the host differs from appsettings.json; the password is filled in
+      # from MSSQL_PASSWORD by Program.cs, same as a local run.
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=TicketTrackerDb;User Id=sa;TrustServerCertificate=True
+      - MSSQL_PASSWORD=${MSSQL_PASSWORD:?set MSSQL_PASSWORD in .env}
+    depends_on:
+      - db
+
+volumes:
+  sql_data:
