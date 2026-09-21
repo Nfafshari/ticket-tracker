@@ -1,0 +1,156 @@
+# ---------------------------------------------------------------------------
+# .NET / ASP.NET Core  (TicketTracker.Api)
+# ---------------------------------------------------------------------------
+# Bracketed case variants: MSBuild emits Bin/Obj on case-insensitive volumes.
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+[Pp]ublish/
+x64/
+x86/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/
+
+# MSBuild / build diagnostics
+*.binlog
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# NOTE: EF Core migrations under TicketTracker.Api/Migrations/ are source code.
+# They are intentionally NOT ignored - commit them.
+
+# ---------------------------------------------------------------------------
+# Secrets and local configuration
+# ---------------------------------------------------------------------------
+# appsettings.json and appsettings.Development.json ARE committed - they hold
+# shared, non-secret defaults. Keep the SQL Server password and JWT signing key
+# out of them: use `dotnet user-secrets` (stored outside the repo) for local
+# dev, and environment variables in Docker/CI.
+appsettings.*.Local.json
+appsettings.Local.json
+secrets.json
+
+# Docker Compose reads .env for the SA password - never commit it.
+# Commit a .env.example with placeholder values instead.
+.env
+.env.*
+!.env.example
+
+# Certificates and keys (ASP.NET dev certs, JWT signing material)
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+
+# Publish profiles can embed deployment credentials
+*.publishsettings
+*.pubxml
+*.pubxml.user
+PublishProfiles/
+
+# ---------------------------------------------------------------------------
+# Docker
+# ---------------------------------------------------------------------------
+# docker-compose.yml and docker-compose.override.yml are committed.
+# Machine-specific overrides and mounted SQL Server data are not.
+docker-compose.local.yml
+.docker/
+.containers/
+
+# Local SQL Server data, if you bind-mount instead of using a named volume
+*.mdf
+*.ldf
+*.ndf
+/data/
+mssql-data/
+
+# ---------------------------------------------------------------------------
+# Node / Vite / React  (ticket-tracker-web)
+# ---------------------------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# Lockfiles are committed. package-lock.json belongs in source control.
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---------------------------------------------------------------------------
+# Testing and coverage
+# ---------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+.nyc_output/
+playwright-report/
+test-results/
+
+# ---------------------------------------------------------------------------
+# IDEs and editors
+# ---------------------------------------------------------------------------
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.iml
+
+# JetBrains (Rider / WebStorm)
+.idea/
+*.iml
+
+# VS Code - share extension and debug config, keep personal settings local
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Vim / misc
+*.sw?
+*~
+
+# NOTE: *.sln is NOT ignored. Vite's default .gitignore excludes it, which is
+# correct for a JS-only repo and wrong here - a .NET solution file is source.
+
+# ---------------------------------------------------------------------------
+# OS
+# ---------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------------------
+# Tooling
+# ---------------------------------------------------------------------------
+.claude/settings.local.json
