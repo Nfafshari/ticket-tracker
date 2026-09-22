@@ -23,18 +23,18 @@ public class AuthController : ControllerBase
     }
 
     public record RegisterRequest(
-        [property: Required, EmailAddress]
+        [Required, EmailAddress]
         string Email,
 
-        [property: Required, MinLength(8)]
+        [Required, MinLength(8)]
         string Password
     );
 
     public record LoginRequest(
-        [property: Required, EmailAddress]
+        [Required, EmailAddress]
         string Email,
 
-        [property: Required, MinLength(8)]
+        [Required, MinLength(8)]
         string Password
     );
 

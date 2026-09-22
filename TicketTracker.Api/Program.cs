@@ -73,7 +73,15 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// set controller urls to lowercase
 builder.Services.AddControllers();
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.LowercaseUrls = true;
+});
+
+
 // CORS allows us to send api requests between different ports/origins
 builder.Services.AddCors(options =>
 {
@@ -89,6 +97,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "TicketTracker API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 
 // middleware execution
