@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Data.SqlClient;
 using TicketTracker.Api.Data;
+using System.Text;
 
 // Pull the repo-root .env into environment variables so local runs share the
 // same password Docker Compose uses. In a container there is no .env file and
@@ -34,11 +37,51 @@ if (string.IsNullOrEmpty(connectionString.Password))
         + "local run, or in the api service's environment for Docker.");
 }
 
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException(
+        "No JWT signing key. Set Jwt__Key in the repo-root .env file for a "
+        + "local run, or in the api service's environment for Docker.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString.ConnectionString));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
+
+// Tokens must carry our issuer and audience, be unexpired, and bear a
+// signature we can reproduce with the key above. Any failure yields a 401.
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+// CORS allows us to send api requests between different ports/origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+        policy.WithOrigins("https://localhost:5173")
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 var app = builder.Build();
 
@@ -48,30 +91,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// middleware execution
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.UseCors("AllowReactApp");
+app.UseAuthentication();       // "Who are you?"   - reads the token, sets HttpContext.User
+app.UseAuthorization();        // "May you?"       - enforces [Authorize] rules
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

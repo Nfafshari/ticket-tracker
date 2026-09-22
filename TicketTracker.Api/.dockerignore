@@ -1,0 +1,54 @@
+# Excludes files from the Docker build context. Docker Compose sets the context
+# to ./TicketTracker.Api, so every path here is relative to that directory.
+#
+# This matters because the Dockerfile runs `COPY . ./` - without these rules,
+# anything sitting in this folder is copied into an image layer. Layers are
+# additive and permanent: deleting a file in a later layer does not remove it
+# from the earlier one, and `docker history` recovers it. Same rule as git.
+
+# ---------------------------------------------------------------------------
+# Build artifacts
+# ---------------------------------------------------------------------------
+# Not just noise - obj/project.assets.json is written by the host build and
+# holds absolute NuGet paths. On Windows those are C:\Users\... paths, which
+# break restore/publish inside a Linux container. Excluding these forces a
+# clean restore in the build stage and shrinks the context.
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+artifacts/
+
+# ---------------------------------------------------------------------------
+# Secrets
+# ---------------------------------------------------------------------------
+# Nothing here today: .env lives at the repo root, one level above the build
+# context, so Docker cannot reach it. These rules exist so that stays true if
+# someone later drops a .env in this folder or widens the context to `.`.
+#
+# appsettings.json IS copied on purpose - it holds non-secret defaults only.
+# MSSQL_PASSWORD and Jwt:Key arrive as environment variables at container
+# start, never baked into the image. Keep it that way.
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Certificates and signing material
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+
+# ---------------------------------------------------------------------------
+# Not needed at build time
+# ---------------------------------------------------------------------------
+Dockerfile
+.dockerignore
+*.user
+*.suo
+.vs/
+.idea/
+*.log

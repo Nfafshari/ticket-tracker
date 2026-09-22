@@ -20,6 +20,7 @@ services:
       # from MSSQL_PASSWORD by Program.cs, same as a local run.
       - ConnectionStrings__DefaultConnection=Server=db,1433;Database=TicketTrackerDb;User Id=sa;TrustServerCertificate=True
       - MSSQL_PASSWORD=${MSSQL_PASSWORD:?set MSSQL_PASSWORD in .env}
+      - JWT__KEY=${JWT__KEY:?set JWT__KEY in .env}
     depends_on:
       - db
 
